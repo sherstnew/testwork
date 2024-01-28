@@ -117,13 +117,12 @@ export default function HomePage() {
       <header className={styles.question__header}>{`${initialLength - questions.length + 1}/${initialLength} ${questions[0].text}`}</header>
       <div className={styles.options}>
         {questions[0].options.map((option: string, index: number) => (
-          <div key={index} className={styles.options__radio}>
+          <div key={index} className={styles.options__radio} onClick={() => setAnswer(option)}>
             <input
               className={styles.radio}
               type='radio'
               name={String(index)}
               checked={answer === option}
-              onChange={() => setAnswer(option)}
             />
             <label className={styles.label} htmlFor={String(index)}>
               {option}
