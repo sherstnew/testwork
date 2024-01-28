@@ -6,7 +6,7 @@ import { startTest } from '@/utils/startTest';
 import { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { loadTest } from '@/utils/loadTest';
-import { useLocalStorage } from '@uidotdev/usehooks';
+import useLocalStorage from '@/hooks/useLocalStorage';
 import { finishTest } from '@/utils/finishTest';
 import moment from 'moment';
 
