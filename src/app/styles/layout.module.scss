@@ -6,6 +6,9 @@
   font-weight: 500;
   width: 80%;
   height: 20%;
+  @media screen and (max-width: 600px) {
+    font-size: 32px;
+  }
 }
 
 .main {

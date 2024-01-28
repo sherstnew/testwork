@@ -8,6 +8,9 @@
 
 .header {
   font-size: 48px;
+  @media screen and (max-width: 600px) {
+    font-size: 24px;
+  }
 }
 
 .input {
@@ -42,6 +45,9 @@
 
 .question__header {
   font-size: 32px;
+  @media screen and (max-width: 600px) {
+    font-size: 20px;
+  }
 }
 
 .options {
@@ -50,6 +56,7 @@
   justify-content: flex-start;
   align-items: flex-start;
   flex-wrap: wrap;
+  gap: 20px;
 }
 
 .options__radio {
@@ -59,6 +66,7 @@
   flex-wrap: nowrap;
   gap: 20px;
   width: 100%;
+  cursor: pointer;
 }
 
 .radio {
@@ -68,6 +76,9 @@
 
 .label {
   font-size: 24px;
+  @media screen and (max-width: 600px) {
+    font-size: 18px;
+  }
 }
 
 .result__regular {

@@ -114,7 +114,7 @@ export default function HomePage() {
     </div>
   ) : status === 'progress' && questions[0] ? (
     <div className={styles.question}>
-      <header className={styles.question__header}>{`${initialLength - questions.length + 1}/${initialLength} ${questions[0].text}`}</header>
+      <header className={styles.question__header}>{`${initialLength - questions.length + 1}/${initialLength}: ${questions[0].text}`}</header>
       <div className={styles.options}>
         {questions[0].options.map((option: string, index: number) => (
           <div key={index} className={styles.options__radio} onClick={() => setAnswer(option)}>
@@ -123,6 +123,7 @@ export default function HomePage() {
               type='radio'
               name={String(index)}
               checked={answer === option}
+              onChange={() => setAnswer(option)}
             />
             <label className={styles.label} htmlFor={String(index)}>
               {option}
