@@ -17,6 +17,7 @@ export default function HomePage() {
   const [cookies, setCookies] = useCookies();
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [result, setResult] = useState<number>(0);
+  const [time, setTime] = useState<number>(-1);
 
   const [initialLength, setInitialLength] = useState(0);
 
@@ -29,18 +30,40 @@ export default function HomePage() {
   );
 
   useEffect(() => {
+    if (time !== -1) {
+      setTimeout(() => {
+        if (time === 0) {
+          finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time)
+          .then((result: any) => {
+            setName(result.name);
+            setStatus('finished');
+          })
+          .catch((error) => {
+            console.log(error);
+            restartTest();
+          });
+        } else {
+          setTime(time => time - 1);
+        };
+      }, 1000);
+    };
+  }, [time]);
+
+  useEffect(() => {
     if (cookies['TESTWORK_SESSION_ID']) {
       loadTest(cookies['TESTWORK_SESSION_ID'])
         .then((session) => {
           setQuestions(session.questions);
+          setName(session.name);
           setStatus('progress');
           setInitialLength(session.questions.length);
+          setTime(600);
         })
         .catch((error) => {
           console.log(error);
           restartTest();
         });
-    }
+    };
   }, []);
 
   const runTest = async () => {
@@ -49,8 +72,10 @@ export default function HomePage() {
         setCookies('TESTWORK_SESSION_ID', session._id);
         setQuestions(session.questions);
         setResult(0);
+        setName(session.name);
         setInitialLength(session.questions.length);
         setStatus('progress');
+        setTime(600);
       })
       .catch((error) => {
         console.log(error);
@@ -65,7 +90,7 @@ export default function HomePage() {
 
     if (questions.length === 1) {
       // finish test
-      finishTest(cookies['TESTWORK_SESSION_ID'], result)
+      finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time)
         .then((result: any) => {
           setName(result.name);
           setStatus('finished');
@@ -87,6 +112,8 @@ export default function HomePage() {
     setInitialLength(0);
     setStatus('initial');
     setCookies('TESTWORK_SESSION_ID', '');
+    setName('');
+    setTime(0);
   };
 
   const date = new Date();
@@ -114,7 +141,15 @@ export default function HomePage() {
     </div>
   ) : status === 'progress' && questions[0] ? (
     <div className={styles.question}>
-      <header className={styles.question__header}>{`${initialLength - questions.length + 1}/${initialLength}: ${questions[0].text}`}</header>
+      <div className={styles.info}>
+        <div className={styles.questions}>
+          {`${initialLength - questions.length + 1}/${initialLength}`}
+        </div>
+        <div className={styles.time}>
+          {`${String(Math.floor(time / 60)).padStart(2, '0')}:${String(time % 60).padStart(2, '0')}`}
+        </div>
+      </div>
+      <header className={styles.question__header}>{`${questions[0].text}`}</header>
       <div className={styles.options}>
         {questions[0].options.map((option: string, index: number) => (
           <div key={index} className={styles.options__radio} onClick={() => setAnswer(option)}>
@@ -138,7 +173,7 @@ export default function HomePage() {
       <div className={styles.result__regular}>Ваш результат:</div>
       <div className={styles.result__points}>{`${result}/${initialLength}`}</div>
       <div className={styles.result__regular}>{moment(date).format('DD.MM.YYYY')}</div>
-      <button className={styles.button} onClick={restartTest}>Выйти</button>
+      <button className={styles.button} onClick={restartTest} style={font.style}>Выйти</button>
     </div>
   ) : (
     ''

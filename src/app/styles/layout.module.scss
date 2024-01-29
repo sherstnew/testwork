@@ -6,6 +6,7 @@
   font-weight: 500;
   width: 80%;
   height: 20%;
+  gap: 50px;
   @media screen and (max-width: 600px) {
     font-size: 32px;
   }
@@ -21,7 +22,14 @@
 }
 
 .footer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   color: #adadad;
   width: 80%;
   height: 10%;
 }
+
+// .link {
+//   // text-decoration: underline;
+// }

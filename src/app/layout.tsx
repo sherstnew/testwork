@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Jost  } from "next/font/google";
 import styles from './styles/layout.module.scss';
 import "./styles/globals.css";
+import Link from 'next/link';
 
 const font = Jost({ subsets: ["cyrillic"] });
 
@@ -18,7 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={font.className}>
-        <header className={styles.header}>Тест</header>
+        <header className={styles.header}>
+          <Link href='/' className={styles.link}>Тест</Link>
+          <Link href='/results' className={styles.link}>Результаты</Link>
+        </header>
         <main className={styles.main}>
           {children}
         </main>

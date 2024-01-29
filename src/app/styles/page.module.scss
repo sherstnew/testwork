@@ -78,6 +78,7 @@
 }
 
 .label {
+  cursor: pointer;
   font-size: 24px;
   @media screen and (max-width: 600px) {
     font-size: 18px;
@@ -90,4 +91,13 @@
 
 .result__points {
   font-size: 64px;
+}
+
+.info {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 50px;
+  font-size: 24px;
 }
