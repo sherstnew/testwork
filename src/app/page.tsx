@@ -6,8 +6,8 @@ import { startTest } from '@/utils/startTest';
 import { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { loadTest } from '@/utils/loadTest';
-import useLocalStorage from '@/hooks/useLocalStorage';
 import { finishTest } from '@/utils/finishTest';
+import { IQuestion } from '@/types/IQuestion';
 import moment from 'moment';
 
 const font = Jost({ subsets: ['cyrillic'] });
@@ -15,8 +15,8 @@ moment.locale('ru');
 
 export default function HomePage() {
   const [cookies, setCookies] = useCookies();
-  const [questions, saveQuestions] = useLocalStorage<any>('questions', []);
-  const [result, saveResult] = useLocalStorage<number>('result', 0);
+  const [questions, setQuestions] = useState<IQuestion[]>([]);
+  const [result, setResult] = useState<number>(0);
 
   const [initialLength, setInitialLength] = useState(0);
 
@@ -32,7 +32,7 @@ export default function HomePage() {
     if (cookies['TESTWORK_SESSION_ID']) {
       loadTest(cookies['TESTWORK_SESSION_ID'])
         .then((session) => {
-          saveQuestions(session.questions);
+          setQuestions(session.questions);
           setStatus('progress');
           setInitialLength(session.questions.length);
         })
@@ -47,8 +47,8 @@ export default function HomePage() {
     startTest(name)
       .then((session) => {
         setCookies('TESTWORK_SESSION_ID', session._id);
-        saveQuestions(session.questions);
-        saveResult(0);
+        setQuestions(session.questions);
+        setResult(0);
         setInitialLength(session.questions.length);
         setStatus('progress');
       })
@@ -56,11 +56,11 @@ export default function HomePage() {
         console.log(error);
         restartTest();
       });
-  }
+  };
 
   const answerQuestion = () => {
     if (questions[0].answer === answer) {
-      saveResult(result + 1);
+      setResult((result: number) => result + 1);
     };
 
     if (questions.length === 1) {
@@ -75,15 +75,15 @@ export default function HomePage() {
           restartTest();
         });
     } else {
-      const quests = questions;
+      const quests = [...questions];
       quests.shift();
-      saveQuestions(quests);
+      setQuestions(quests);
     };
   };
 
   const restartTest = () => {
-    saveQuestions([]);
-    saveResult(0);
+    setQuestions([]);
+    setResult(0);
     setInitialLength(0);
     setStatus('initial');
     setCookies('TESTWORK_SESSION_ID', '');
@@ -123,7 +123,7 @@ export default function HomePage() {
               type='radio'
               name={String(index)}
               checked={answer === option}
-              onChange={() => setAnswer(option)}
+              onChange={() => {}}
             />
             <label className={styles.label} htmlFor={String(index)}>
               {option}
