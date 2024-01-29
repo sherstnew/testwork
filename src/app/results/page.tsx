@@ -31,7 +31,7 @@ export default function ResultsPage() {
           <div className={styles.result} key={index}>
             <div className={styles.name}>{result.name}</div>
             <div className={styles.result}>{result.result}</div>
-            <div className={styles.time}>{`${String(Math.floor(result.time / 60)).padStart(2, '0')}:${String(result.time % 60).padStart(2, '0')}`}</div>
+            <div className={styles.time}>{`${String(Math.floor((600 - result.time) / 60)).padStart(2, '0')}:${String((600 - result.time) % 60).padStart(2, '0')}`}</div>
             <div className={styles.date}>{moment(result.createdAt).format('DD.MM.YYYY')}</div>
           </div>
         ))
