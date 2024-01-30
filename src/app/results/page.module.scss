@@ -6,10 +6,11 @@
 }
 
 .result {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 30px;
+  gap: 20px;
   font-size: 24px;
   margin-bottom: 20px;
   min-height: 30px;
@@ -21,24 +22,24 @@
 .name {
   display: flex;
   justify-content: flex-start;
-  flex-grow: 4;
+  min-width: 30%;
 }
 
-.result {
+.points {
   display: flex;
   justify-content: center;
-  flex-grow: 1;
+  min-width: 10%;
 }
 
 .time {
   display: flex;
   justify-content: center;
-  flex-grow: 2;
+  min-width: 10%;
 }
 
 .date {
   display: flex;
   justify-content: flex-end;
-  flex-grow: 2;
+  min-width: 30%;
 }
 
