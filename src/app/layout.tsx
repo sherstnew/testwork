@@ -22,6 +22,7 @@ export default function RootLayout({
         <header className={styles.header}>
           <Link href='/' className={styles.link}>Тест</Link>
           <Link href='/results' className={styles.link}>Результаты</Link>
+          <Link href='/rating' className={styles.link}>Рейтинг</Link>
         </header>
         <main className={styles.main}>
           {children}
