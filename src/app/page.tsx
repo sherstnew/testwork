@@ -29,10 +29,14 @@ export default function HomePage() {
     'initial'
   );
 
+  // ДОБАВИТЬ ОСТАВШИЕСЯ ВОПРОСЫ
+
+  // Таймер
+
   useEffect(() => {
     if (time !== -1) {
       setTimeout(() => {
-        if (time === 0) {
+        if (time === 1) {
           finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time)
           .then((result: any) => {
             setName(result.name);
@@ -54,14 +58,19 @@ export default function HomePage() {
       loadTest(cookies['TESTWORK_SESSION_ID'])
         .then((session) => {
           setQuestions(session.questions);
+          setResult(0);
           setName(session.name);
-          setStatus('progress');
           setInitialLength(session.questions.length);
+          setStatus('progress');
           setTime(600);
         })
         .catch((error) => {
           console.log(error);
-          restartTest();
+          if (result === 0 && initialLength === 0) {
+            setStatus('initial');
+          } else {
+            restartTest();
+          }
         });
     };
   }, []);
@@ -83,14 +92,8 @@ export default function HomePage() {
       });
   };
 
-  const answerQuestion = () => {
-    if (questions[0].answer === answer) {
-      setResult((result: number) => result + 1);
-    };
-
-    if (questions.length === 1) {
-      // finish test
-      finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time)
+  const endTest = () => {
+    finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time)
         .then((result: any) => {
           setName(result.name);
           setStatus('finished');
@@ -99,10 +102,31 @@ export default function HomePage() {
           console.log(error);
           restartTest();
         });
+  };
+
+  useEffect(() => {
+    if (questions.length === 1) {
+      // finish test
+      endTest();
     } else {
       const quests = [...questions];
       quests.shift();
       setQuestions(quests);
+    };
+  }, [result]);
+
+  const answerQuestion = () => {
+    if (questions[0].answer === answer) {
+      setResult((result: number) => result + 1);
+    } else {
+      if (questions.length === 1) {
+        // finish test
+        endTest();
+      } else {
+        const quests = [...questions];
+        quests.shift();
+        setQuestions(quests);
+      };
     };
   };
 
@@ -110,10 +134,10 @@ export default function HomePage() {
     setQuestions([]);
     setResult(0);
     setInitialLength(0);
-    setStatus('initial');
     setCookies('TESTWORK_SESSION_ID', '');
     setName('');
     setTime(0);
+    setStatus('initial');
   };
 
   const date = new Date();
