@@ -10,6 +10,8 @@ export const formRating = async () => {
 
   results = results.map((result) => {
     result.name = result.name.trim();
+    result.name = result.name.replaceAll(',', '');
+    result.name = result.name.replaceAll('.', '');
     return result;
   });
 
