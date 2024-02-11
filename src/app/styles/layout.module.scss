@@ -20,7 +20,7 @@
   align-items: flex-start;
   flex-wrap: wrap;
   width: 80%;
-  height: 70%;
+  min-height: 70%;
   @media screen and (max-width: 600px) {
     width: 85%;
   }
