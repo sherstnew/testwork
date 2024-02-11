@@ -16,14 +16,15 @@ export const formRating = async () => {
   });
 
   results.forEach((result: IResult) => {
-    if (!names.includes(result.name) && result.name !== 'Аноним') {
+    if (!names.includes(result.name) && !names.includes(result.name.split(' ').reverse().join(' ')) && result.name !== 'Аноним') {
       names.push(result.name);
-    }
+    };
   });
+
 
   names.forEach((name: string) => {
     resultsByName.push(
-      results.filter((result: IResult) => result.name === name)
+      results.filter((result: IResult) => result.name === name || result.name.split(' ').reverse().join(' ') === name)
     );
   });
 
