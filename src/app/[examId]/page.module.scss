@@ -7,9 +7,18 @@
 }
 
 .header {
+  width: 100%;
   font-size: 48px;
   @media screen and (max-width: 600px) {
     font-size: 24px;
+  }
+}
+
+.subheader {
+  width: 100%;
+  font-size: 24px;
+  @media screen and (max-width: 600px) {
+    font-size: 18px;
   }
 }
 

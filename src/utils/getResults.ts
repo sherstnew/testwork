@@ -1,4 +1,6 @@
-export const getResults = async () => {
-  const results = await (await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/results/`)).json();
-  return results;
+import { getExam } from './getExam';
+
+export const getResults = async (examId: string|string[]) => {
+  const results = await getExam(examId);
+  return results ? results.results : undefined;
 };

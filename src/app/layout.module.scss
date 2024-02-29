@@ -2,15 +2,19 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  font-size: 64px;
+  align-content: center;
+  font-size: 48px;
   font-weight: 500;
   width: 80%;
   height: 20%;
   gap: 50px;
   @media screen and (max-width: 600px) {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    text-decoration: underline;
     font-size: 20px;
     font-weight: 400;
-    text-decoration: underline;
+    gap: 10px;
   }
 }
 
@@ -35,6 +39,8 @@
   height: 10%;
 }
 
-// .link {
-//   text-decoration: underline;
-// }
+.link {
+  @media screen and (max-width: 600px) {
+    width: 40%;
+  }
+}
