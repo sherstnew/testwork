@@ -3,14 +3,17 @@
 import styles from './page.module.scss'
 import { IRating } from '@/types/IRating';
 import { formRating } from '@/utils/formRating';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function RatingPage() {
 
   const [rating, setRating] = useState<IRating[]>([]);
 
+  const { examId } = useParams();
+
   useEffect(() => {
-    formRating()
+    formRating(examId)
     .then(ratingData => {
       setRating(ratingData.sort((a, b) => {
         if (a.rightAnswersPercent > b.rightAnswersPercent) {
@@ -52,7 +55,7 @@ export default function RatingPage() {
           </div>
         </>
         :
-        'Загрузка...'
+        'Загрузка...  (или же результатов пока нет)'
       }
     </div>
   )

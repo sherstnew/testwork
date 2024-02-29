@@ -2,8 +2,8 @@ import { getResults } from './getResults';
 import { IResult } from '@/types/IResult';
 import { IRating } from '@/types/IRating';
 
-export const formRating = async () => {
-  let results: IResult[] = await getResults();
+export const formRating = async (examId: string|string[]) => {
+  let results: IResult[] = await getResults(examId);
 
   let names: string[] = [];
   const resultsByName: IResult[][] = [];

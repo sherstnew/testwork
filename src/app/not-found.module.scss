@@ -1,0 +1,16 @@
+.notfound {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+  overflow-y: auto;
+  width: 100%;
+  height: 90%;
+}
+
+.exam {
+  width: 100%;
+  font-size: 20px;
+}
