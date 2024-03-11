@@ -31,8 +31,8 @@ export default function HomePage() {
 
   const [answer, setAnswer] = useState<string>('');
 
-  const [status, setStatus] = useState<'initial' | 'progress' | 'finished' | ''>(
-    ''
+  const [status, setStatus] = useState<'initial' | 'progress' | 'finished' | 'loading'>(
+    'initial'
   );
 
   const { examId } = useParams();
@@ -58,6 +58,10 @@ export default function HomePage() {
   }, [time]);
 
   useEffect(() => {
+    console.log(result, status);
+  }, [result, status]);
+
+  useEffect(() => {
     if (cookies['TESTWORK_SESSION_ID']) {
       loadTest(cookies['TESTWORK_SESSION_ID'])
         .then((session) => {
@@ -66,6 +70,7 @@ export default function HomePage() {
           setStatus('progress');
           setInitialLength(session.questions.length);
           setTime(600);
+          setResult(0);
         })
         .catch((error) => {
           console.log(error);
@@ -75,11 +80,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    setStatus('');
     getExam(examId).then((exam: IExam) => {
       if (exam) {
         setCurrentExam(exam);
-        setStatus('initial');
+        setStatus(status => status === 'progress' ? 'progress' : 'initial');
       } else {
         console.log('Cannot get Exam by id');
       }
@@ -141,10 +145,8 @@ export default function HomePage() {
 
   const date = new Date();
 
-  // написать форму с вопросом и сделать завершение теста
-
   return status === 'initial' && currentExam ? (
-    <div className={styles.form} onSubmit={runTest}>
+    <div className={styles.form}>
       <span className={styles.subheader}>{currentExam.name}</span>
       <header className={styles.header}>Введите своё имя и фамилию:</header>
       <section className={styles.section}>
