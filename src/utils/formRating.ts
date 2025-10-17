@@ -1,6 +1,6 @@
 import { getResults } from './getResults';
-import { IResult } from '@/types/IResult';
-import { IRating } from '@/types/IRating';
+import { IResult } from '../types/IResult';
+import { IRating } from '../types/IRating';
 
 export const formRating = async (examId: string|string[]) => {
   let results: IResult[] = await getResults(examId);
