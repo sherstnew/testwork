@@ -58,10 +58,6 @@ export default function HomePage() {
   }, [time]);
 
   useEffect(() => {
-    console.log(result, status);
-  }, [result, status]);
-
-  useEffect(() => {
     if (cookies['TESTWORK_SESSION_ID']) {
       loadTest(cookies['TESTWORK_SESSION_ID'])
         .then((session) => {
