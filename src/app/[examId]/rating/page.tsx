@@ -38,8 +38,8 @@ export default function RatingPage() {
           <div className={styles.rating__header}>
             <span className={styles.param}>Место</span>
             <span className={styles.param}>Имя</span>
-            <span className={styles.param}>Верные ответы, %</span>
-            <span className={styles.param}>Среднее время</span>
+            <span className={styles.param}>Процент</span>
+            <span className={styles.param}>Время</span>
           </div>
           <div className={styles.rating__list}>
             {
