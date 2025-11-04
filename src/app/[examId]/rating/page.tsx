@@ -13,7 +13,7 @@ export default function RatingPage() {
   const { examId } = useParams();
 
   useEffect(() => {
-    formRating(examId)
+    formRating(examId ?? "")
     .then(ratingData => {
       setRating(ratingData.sort((a, b) => {
         if (a.rightAnswersPercent > b.rightAnswersPercent) {

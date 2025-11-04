@@ -8,7 +8,8 @@ import {
 import { Types } from 'mongoose';
 import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
-export async function POST(req: NextRequest, { params }: { params: { examId: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ examId: string }> }) {
+  const params = await props.params;
   httpRequestsTotal.inc();
   const end = httpRequestDurationSeconds.startTimer({ method: 'POST', route: '/api/results/[examId]' });
   await dbConnect();
@@ -32,15 +33,15 @@ export async function POST(req: NextRequest, { params }: { params: { examId: str
   }).save();
 
   await SessionModel.findByIdAndDelete(data.id).exec();
-  
+
   const exam = await ExamModel.findById(examId);
   if (!exam) {
     end({ status_code: '404' });
     return NextResponse.json({ error: 'Exam not found' }, { status: 404 });
-  } 
+  }
   exam.results.push(createdResult._id);
   await exam.save();
-  
+
   end({ status_code: '201' });
   return NextResponse.json(createdResult, { status: 201 });
 }

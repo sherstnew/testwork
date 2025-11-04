@@ -16,7 +16,7 @@ export default function ResultsPage() {
   const { examId } = useParams();
 
   useEffect(() => {
-    getResults(examId)
+    getResults(examId ?? "")
     .then(res => {
       setResults(res);
     })

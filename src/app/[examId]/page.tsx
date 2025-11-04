@@ -41,7 +41,7 @@ export default function HomePage() {
     if (time !== -1) {
       setTimeout(() => {
         if (time === 0) {
-          finishTest(cookies["TESTWORK_SESSION_ID"], result, name, time, examId)
+          finishTest(cookies["TESTWORK_SESSION_ID"], result, name, time, examId ?? "")
             .then((result: any) => {
               setName(result.name);
               setStatus("finished");
@@ -76,7 +76,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    getExam(examId)
+    getExam(examId ?? "")
       .then((exam: IExam) => {
         if (exam) {
           setCurrentExam(exam);
@@ -93,7 +93,7 @@ export default function HomePage() {
   }, []);
 
   const runTest = async () => {
-    startTest(name, examId)
+    startTest(name, examId ?? "")
       .then((session) => {
         setCookies("TESTWORK_SESSION_ID", session._id);
         setQuestions(session.questions);
@@ -117,7 +117,7 @@ export default function HomePage() {
     }
     if (questions.length === 1) {
       // finish test
-      finishTest(cookies["TESTWORK_SESSION_ID"], res, name, time, examId)
+      finishTest(cookies["TESTWORK_SESSION_ID"], res, name, time, examId ?? "")
         .then((result: any) => {
           setName(result.name);
           setStatus("finished");

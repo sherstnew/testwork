@@ -4,7 +4,8 @@ import { ExamModel, QuestionModel, ResultModel } from '../../../../lib/models';
 import { Types } from 'mongoose';
 import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   httpRequestsTotal.inc();
   const end = httpRequestDurationSeconds.startTimer({ method: 'GET', route: '/api/exams/[id]' });
   await dbConnect();
@@ -27,7 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json(exam);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   httpRequestsTotal.inc();
   const end = httpRequestDurationSeconds.startTimer({ method: 'PATCH', route: '/api/exams/[id]' });
   await dbConnect();
@@ -42,7 +44,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(updated);
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   httpRequestsTotal.inc();
   const end = httpRequestDurationSeconds.startTimer({ method: 'DELETE', route: '/api/exams/[id]' });
   await dbConnect();

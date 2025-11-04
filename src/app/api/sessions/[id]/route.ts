@@ -4,7 +4,8 @@ import { SessionModel } from '../../../../lib/models';
 import { Types } from 'mongoose';
 import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   httpRequestsTotal.inc();
   const end = httpRequestDurationSeconds.startTimer({ method: 'GET', route: '/api/sessions/[id]' });
   await dbConnect();
