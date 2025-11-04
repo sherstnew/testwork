@@ -1,5 +1,5 @@
-import { dbConnect } from '../src/app/api/_lib/mongoose';
-import { SessionModel } from '../src/app/api/_lib/models';
+import { dbConnect } from '../src/lib/mongoose';
+import { SessionModel } from '../src/lib/models';
 
 async function cleanupSessions() {
   await dbConnect();

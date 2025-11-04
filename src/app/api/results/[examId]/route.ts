@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '../../_lib/mongoose';
+import { dbConnect } from '../../../../lib/mongoose';
 import {
   ResultModel,
   SessionModel,
   ExamModel
-} from '../../_lib/models';
+} from '../../../../lib/models';
 import { Types } from 'mongoose';
-import { httpRequestsTotal, httpRequestDurationSeconds } from '@/app/api/_lib/prometheus';
+import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
 export async function POST(req: NextRequest, { params }: { params: { examId: string } }) {
   httpRequestsTotal.inc();

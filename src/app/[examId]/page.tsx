@@ -2,15 +2,15 @@
 
 import styles from "./page.module.scss";
 import { Roboto_Slab } from "next/font/google";
-import { startTest } from "../../utils/startTest";
+import { startTest } from "@/lib/utils/startTest";
 import { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
-import { loadTest } from "../../utils/loadTest";
-import { finishTest } from "../../utils/finishTest";
-import { IQuestion } from "../../types/IQuestion";
-import { getExam } from "../../utils/getExam";
+import { loadTest } from "@/lib/utils/loadTest";
+import { finishTest } from "@/lib/utils/finishTest";
+import { IQuestion } from "@/types/IQuestion";
+import { getExam } from "@/lib/utils/getExam";
 import { useParams } from "next/navigation";
-import { IExam } from "../../types/IExam";
+import { IExam } from "@/types/IExam";
 import NotFoundPage from "../not-found";
 import moment from "moment";
 

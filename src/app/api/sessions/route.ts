@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '../_lib/mongoose';
-import { SessionModel, ExamModel, QuestionModel } from '../_lib/models';
+import { dbConnect } from '../../../lib/mongoose';
+import { SessionModel, ExamModel, QuestionModel } from '../../../lib/models';
 import { Types } from 'mongoose';
-import { httpRequestsTotal, httpRequestDurationSeconds } from '@/app/api/_lib/prometheus';
+import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
 // POST /api/sessions?question - создать вопрос
 // POST /api/sessions/[examId] - создать сессию для экзамена

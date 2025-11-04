@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbConnect } from '../_lib/mongoose';
-import { ResultModel } from '../_lib/models';
-import { httpRequestsTotal, httpRequestDurationSeconds } from '@/app/api/_lib/prometheus';
+import { dbConnect } from '../../../lib/mongoose';
+import { ResultModel } from '../../../lib/models';
+import { httpRequestsTotal, httpRequestDurationSeconds } from '@/lib/prometheus';
 
 export async function GET() {
   httpRequestsTotal.inc();

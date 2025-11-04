@@ -1,9 +1,9 @@
 'use client'
 
 import styles from './page.module.scss';
-import { getResults } from '../../../utils/getResults';
+import { getResults } from '@/lib/utils/getResults';
 import { useEffect, useState } from 'react';
-import { IResult } from '../../../types/IResult';
+import { IResult } from '@/types/IResult';
 import { useParams } from 'next/navigation';
 import moment from 'moment';
 

@@ -1,8 +1,8 @@
 'use client'
 
 import styles from './page.module.scss'
-import { IRating } from '../../../types/IRating';
-import { formRating } from '../../../utils/formRating';
+import { IRating } from '@/types/IRating';
+import { formRating } from '@/lib/utils/formRating';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
