@@ -30,6 +30,9 @@ export default function HomePage() {
   const [name, setName] = useState("");
 
   const [answer, setAnswer] = useState<string>("");
+  type Incorrect = { text: string; given: string; correct: string };
+  const [incorrects, setIncorrects] = useState<Incorrect[]>([]);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const [status, setStatus] = useState<
     "initial" | "progress" | "finished" | "loading"
@@ -67,6 +70,7 @@ export default function HomePage() {
           setInitialLength(session.questions.length);
           setTime(600);
           setResult(0);
+          setIncorrects([]);
         })
         .catch((error) => {
           console.log(error);
@@ -102,6 +106,7 @@ export default function HomePage() {
         setInitialLength(session.questions.length);
         setStatus("progress");
         setTime(600);
+        setIncorrects([]);
       })
       .catch((error) => {
         console.log(error);
@@ -110,11 +115,20 @@ export default function HomePage() {
   };
 
   const answerQuestion = () => {
+    if (submitting) return;
+    setSubmitting(true);
+
     let res = result;
     if (questions[0].answer === answer) {
       res += 1;
       setResult((result: number) => result + 1);
+    } else {
+      setIncorrects((prev) => [
+        ...prev,
+        { text: questions[0].text, given: answer ?? "", correct: questions[0].answer },
+      ]);
     }
+
     if (questions.length === 1) {
       // finish test
       finishTest(cookies["TESTWORK_SESSION_ID"], res, name, time, examId ?? "")
@@ -125,11 +139,14 @@ export default function HomePage() {
         .catch((error) => {
           console.log(error);
           restartTest();
-        });
+        })
+        .finally(() => setSubmitting(false));
     } else {
       const quests = [...questions];
       quests.shift();
       setQuestions(quests);
+      setAnswer("");
+      setSubmitting(false);
     }
   };
 
@@ -141,6 +158,7 @@ export default function HomePage() {
     setCookies("TESTWORK_SESSION_ID", "");
     setName("");
     setTime(-1);
+    setIncorrects([]);
   };
 
   const date = new Date();
@@ -204,6 +222,7 @@ export default function HomePage() {
         className={styles.button}
         onClick={answerQuestion}
         style={font.style}
+        disabled={submitting}
       >
         Ответить
       </button>
@@ -216,6 +235,26 @@ export default function HomePage() {
       >{`${result}/${initialLength}`}</div>
       <div className={styles.result__regular}>
         {moment(date).format("DD.MM.YYYY")}
+      </div>
+      <div className={styles.incorrectsWrap}>
+        <div className={styles.incorrectsTitle}>Неправильные ответы:</div>
+        {incorrects.length === 0 ? (
+          <div className={styles.incorrectsEmpty}>Все ответы верны</div>
+        ) : (
+          <ul className={styles.incorrectList}>
+            {incorrects.map((it, idx) => (
+              <li key={idx} className={styles.incorrectItem}>
+                <div className={styles.incorrectQuestion}>{it.text}</div>
+                <div className={styles.incorrectGiven}>
+                  Ваш ответ: <span className={styles.incorrectValue}>{it.given || "—"}</span>
+                </div>
+                <div className={styles.incorrectCorrect}>
+                  Правильный ответ: <span className={styles.incorrectValue}>{it.correct}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <button
         className={styles.button}
