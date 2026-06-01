@@ -1,8 +1,8 @@
 'use client'
 
 import styles from './page.module.scss'
-import { IRating } from '../../../types/IRating';
-import { formRating } from '../../../utils/formRating';
+import { IRating } from '@/types/IRating';
+import { formRating } from '@/lib/utils/formRating';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -13,7 +13,7 @@ export default function RatingPage() {
   const { examId } = useParams();
 
   useEffect(() => {
-    formRating(examId)
+    formRating(examId ?? "")
     .then(ratingData => {
       setRating(ratingData.sort((a, b) => {
         if (a.rightAnswersPercent > b.rightAnswersPercent) {
@@ -38,8 +38,8 @@ export default function RatingPage() {
           <div className={styles.rating__header}>
             <span className={styles.param}>Место</span>
             <span className={styles.param}>Имя</span>
-            <span className={styles.param}>Верные ответы, %</span>
-            <span className={styles.param}>Среднее время</span>
+            <span className={styles.param}>Процент</span>
+            <span className={styles.param}>Время</span>
           </div>
           <div className={styles.rating__list}>
             {

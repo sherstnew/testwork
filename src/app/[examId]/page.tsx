@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import styles from './page.module.scss';
-import { Roboto_Slab } from 'next/font/google';
-import { startTest } from '../../utils/startTest';
-import { useState, useEffect } from 'react';
-import { useCookies } from 'react-cookie';
-import { loadTest } from '../../utils/loadTest';
-import { finishTest } from '../../utils/finishTest';
-import { IQuestion } from '../../types/IQuestion';
-import { getExam } from '../../utils/getExam';
-import { useParams } from 'next/navigation';
-import { IExam } from '../../types/IExam';
-import NotFoundPage from '../not-found';
-import moment from 'moment';
+import styles from "./page.module.scss";
+import { Roboto_Slab } from "next/font/google";
+import { startTest } from "@/lib/utils/startTest";
+import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
+import { loadTest } from "@/lib/utils/loadTest";
+import { finishTest } from "@/lib/utils/finishTest";
+import { IQuestion } from "@/types/IQuestion";
+import { getExam } from "@/lib/utils/getExam";
+import { useParams } from "next/navigation";
+import { IExam } from "@/types/IExam";
+import NotFoundPage from "../not-found";
+import moment from "moment";
 
-const font = Roboto_Slab({ subsets: ['cyrillic'] });
-moment.locale('ru');
+const font = Roboto_Slab({ subsets: ["cyrillic"] });
+moment.locale("ru");
 
 export default function HomePage() {
   const [cookies, setCookies] = useCookies();
@@ -27,13 +27,16 @@ export default function HomePage() {
 
   const [initialLength, setInitialLength] = useState(0);
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
 
-  const [answer, setAnswer] = useState<string>('');
+  const [answer, setAnswer] = useState<string>("");
+  type Incorrect = { text: string; given: string; correct: string };
+  const [incorrects, setIncorrects] = useState<Incorrect[]>([]);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const [status, setStatus] = useState<'initial' | 'progress' | 'finished' | 'loading'>(
-    'initial'
-  );
+  const [status, setStatus] = useState<
+    "initial" | "progress" | "finished" | "loading"
+  >("initial");
 
   const { examId } = useParams();
 
@@ -41,68 +44,69 @@ export default function HomePage() {
     if (time !== -1) {
       setTimeout(() => {
         if (time === 0) {
-          finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time, examId)
-          .then((result: any) => {
-            setName(result.name);
-            setStatus('finished');
-          })
-          .catch((error) => {
-            console.log(error);
-            restartTest();
-          });
+          finishTest(cookies["TESTWORK_SESSION_ID"], result, name, time, examId ?? "")
+            .then((result: any) => {
+              setName(result.name);
+              setStatus("finished");
+            })
+            .catch((error) => {
+              console.log(error);
+              restartTest();
+            });
         } else {
-          setTime(time => time - 1);
-        };
+          setTime((time) => time - 1);
+        }
       }, 1000);
-    };
+    }
   }, [time]);
 
   useEffect(() => {
-    console.log(result, status);
-  }, [result, status]);
-
-  useEffect(() => {
-    if (cookies['TESTWORK_SESSION_ID']) {
-      loadTest(cookies['TESTWORK_SESSION_ID'])
+    if (cookies["TESTWORK_SESSION_ID"]) {
+      loadTest(cookies["TESTWORK_SESSION_ID"])
         .then((session) => {
           setQuestions(session.questions);
           setName(session.name);
-          setStatus('progress');
+          setStatus("progress");
           setInitialLength(session.questions.length);
           setTime(600);
           setResult(0);
+          setIncorrects([]);
         })
         .catch((error) => {
           console.log(error);
           restartTest();
         });
-    };
+    }
   }, []);
 
   useEffect(() => {
-    getExam(examId).then((exam: IExam) => {
-      if (exam) {
-        setCurrentExam(exam);
-        setStatus(status => status === 'progress' ? 'progress' : 'initial');
-      } else {
-        console.log('Cannot get Exam by id');
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    })
+    getExam(examId ?? "")
+      .then((exam: IExam) => {
+        if (exam) {
+          setCurrentExam(exam);
+          setStatus((status) =>
+            status === "progress" ? "progress" : "initial"
+          );
+        } else {
+          console.log("Cannot get Exam by id");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }, []);
 
   const runTest = async () => {
-    startTest(name, examId)
+    startTest(name, examId ?? "")
       .then((session) => {
-        setCookies('TESTWORK_SESSION_ID', session._id);
+        setCookies("TESTWORK_SESSION_ID", session._id);
         setQuestions(session.questions);
         setResult(0);
         setName(session.name);
         setInitialLength(session.questions.length);
-        setStatus('progress');
+        setStatus("progress");
         setTime(600);
+        setIncorrects([]);
       })
       .catch((error) => {
         console.log(error);
@@ -111,50 +115,64 @@ export default function HomePage() {
   };
 
   const answerQuestion = () => {
+    if (submitting) return;
+    setSubmitting(true);
+
+    let res = result;
     if (questions[0].answer === answer) {
+      res += 1;
       setResult((result: number) => result + 1);
-    };
+    } else {
+      setIncorrects((prev) => [
+        ...prev,
+        { text: questions[0].text, given: answer ?? "", correct: questions[0].answer },
+      ]);
+    }
 
     if (questions.length === 1) {
       // finish test
-      finishTest(cookies['TESTWORK_SESSION_ID'], result, name, time, examId)
+      finishTest(cookies["TESTWORK_SESSION_ID"], res, name, time, examId ?? "")
         .then((result: any) => {
           setName(result.name);
-          setStatus('finished');
+          setStatus("finished");
         })
         .catch((error) => {
           console.log(error);
           restartTest();
-        });
+        })
+        .finally(() => setSubmitting(false));
     } else {
       const quests = [...questions];
       quests.shift();
       setQuestions(quests);
-    };
+      setAnswer("");
+      setSubmitting(false);
+    }
   };
 
   const restartTest = () => {
     setQuestions([]);
     setResult(0);
     setInitialLength(0);
-    setStatus('initial');
-    setCookies('TESTWORK_SESSION_ID', '');
-    setName('');
+    setStatus("initial");
+    setCookies("TESTWORK_SESSION_ID", "");
+    setName("");
     setTime(-1);
+    setIncorrects([]);
   };
 
   const date = new Date();
 
-  return status === 'initial' && currentExam ? (
+  return status === "initial" && currentExam ? (
     <div className={styles.form}>
       <span className={styles.subheader}>{currentExam.name}</span>
       <header className={styles.header}>Введите своё имя и фамилию:</header>
       <section className={styles.section}>
         <input
-          name='name'
-          type='text'
+          name="name"
+          type="text"
           className={styles.input}
-          placeholder='Введите имя и фамилию'
+          placeholder="Введите имя и фамилию"
           style={font.style}
           onChange={(event) => setName(event.target.value)}
         />
@@ -165,23 +183,31 @@ export default function HomePage() {
         </button>
       </section>
     </div>
-  ) : status === 'progress' && questions[0] ? (
+  ) : status === "progress" && questions[0] ? (
     <div className={styles.question}>
       <div className={styles.info}>
         <div className={styles.questions}>
           {`${initialLength - questions.length + 1}/${initialLength}`}
         </div>
         <div className={styles.time}>
-          {`${String(Math.floor(time / 60)).padStart(2, '0')}:${String(time % 60).padStart(2, '0')}`}
+          {`${String(Math.floor(time / 60)).padStart(2, "0")}:${String(
+            time % 60
+          ).padStart(2, "0")}`}
         </div>
       </div>
-      <header className={styles.question__header}>{`${questions[0].text}`}</header>
+      <header
+        className={styles.question__header}
+      >{`${questions[0].text}`}</header>
       <div className={styles.options}>
         {questions[0].options.map((option: string, index: number) => (
-          <div key={index} className={styles.options__radio} onClick={() => setAnswer(option)}>
+          <div
+            key={index}
+            className={styles.options__radio}
+            onClick={() => setAnswer(option)}
+          >
             <input
               className={styles.radio}
-              type='radio'
+              type="radio"
               name={String(index)}
               checked={answer === option}
               onChange={() => {}}
@@ -192,14 +218,51 @@ export default function HomePage() {
           </div>
         ))}
       </div>
-      <button className={styles.button} onClick={answerQuestion} style={font.style}>Ответить</button>
+      <button
+        className={styles.button}
+        onClick={answerQuestion}
+        style={font.style}
+        disabled={submitting}
+      >
+        Ответить
+      </button>
     </div>
-  ) : status === 'finished' ? (
+  ) : status === "finished" ? (
     <div className={styles.result}>
       <div className={styles.result__regular}>Ваш результат:</div>
-      <div className={styles.result__points}>{`${result}/${initialLength}`}</div>
-      <div className={styles.result__regular}>{moment(date).format('DD.MM.YYYY')}</div>
-      <button className={styles.button} onClick={restartTest} style={font.style}>Выйти</button>
+      <div
+        className={styles.result__points}
+      >{`${result}/${initialLength}`}</div>
+      <div className={styles.result__regular}>
+        {moment(date).format("DD.MM.YYYY")}
+      </div>
+      <div className={styles.incorrectsWrap}>
+        <div className={styles.incorrectsTitle}>Неправильные ответы:</div>
+        {incorrects.length === 0 ? (
+          <div className={styles.incorrectsEmpty}>Все ответы верны</div>
+        ) : (
+          <ul className={styles.incorrectList}>
+            {incorrects.map((it, idx) => (
+              <li key={idx} className={styles.incorrectItem}>
+                <div className={styles.incorrectQuestion}>{it.text}</div>
+                <div className={styles.incorrectGiven}>
+                  Ваш ответ: <span className={styles.incorrectValue}>{it.given || "—"}</span>
+                </div>
+                <div className={styles.incorrectCorrect}>
+                  Правильный ответ: <span className={styles.incorrectValue}>{it.correct}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <button
+        className={styles.button}
+        onClick={restartTest}
+        style={font.style}
+      >
+        Выйти
+      </button>
     </div>
   ) : (
     <NotFoundPage />

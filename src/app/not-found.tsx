@@ -1,8 +1,8 @@
 'use client';
 
-import { IExam } from '../types/IExam';
+import { IExam } from '@/types/IExam';
 import styles from './not-found.module.scss';
-import { getAllExams } from '../utils/getAllExams';
+import { getAllExams } from '@/lib/utils/getAllExams';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 

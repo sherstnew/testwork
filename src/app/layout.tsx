@@ -49,7 +49,7 @@ export default function RootLayout({
         </header>
         <main className={styles.main}>{children}</main>
         <footer className={styles.footer}>
-          Буденко Т.А., Шмелев М.Д., Шерстнев Д.В., 2025
+          {process.env.NEXT_PUBLIC_CREDITS}
         </footer>
       </body>
     </html>
