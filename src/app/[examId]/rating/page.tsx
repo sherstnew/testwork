@@ -8,9 +8,13 @@ import { useEffect, useState } from "react";
 const paramClassName =
     "flex min-w-0 items-start justify-center text-center";
 const ratingGridClassName =
-    "grid w-full grid-cols-[46px_minmax(0,1fr)_64px_64px] gap-x-2 max-[600px]:grid-cols-[42px_minmax(0,1fr)_54px_58px] max-[600px]:gap-x-1";
+    "grid w-full grid-cols-[64px_minmax(220px,520px)_86px_86px] gap-x-4 max-[600px]:grid-cols-[42px_minmax(0,1fr)_54px_58px] max-[600px]:gap-x-1";
 const nameClassName =
-    "min-w-0 break-words text-center [overflow-wrap:anywhere]";
+    "min-w-0 break-words text-left [overflow-wrap:anywhere] max-[600px]:text-center";
+const headerClassName =
+    "border-b border-[#d8d8d8] pb-2 text-base text-[#555555] max-[600px]:text-sm";
+const rowClassName =
+    "border-b border-[#e3e3e3] py-3 text-xl last:border-b-0 max-[600px]:py-3 max-[600px]:text-base";
 
 export default function RatingPage() {
     const [rating, setRating] = useState<IRating[] | null>(null);
@@ -38,19 +42,21 @@ export default function RatingPage() {
     }, [examId]);
 
     return (
-        <div className="flex h-full w-full flex-wrap content-start items-start justify-start gap-5 max-[600px]:text-base">
+        <div className="flex h-full w-fit max-w-full flex-col content-start items-start justify-start max-[600px]:w-full">
             {rating && rating.length > 0 ? (
                 <>
-                    <div className={ratingGridClassName}>
+                    <div className={`${ratingGridClassName} ${headerClassName}`}>
                         <span className={paramClassName}>Место</span>
-                        <span className={paramClassName}>Имя</span>
+                        <span className="min-w-0 text-left max-[600px]:text-center">
+                            Имя
+                        </span>
                         <span className={paramClassName}>Процент</span>
                         <span className={paramClassName}>Время</span>
                     </div>
-                    <div className="flex h-[90%] w-full flex-wrap content-start items-start justify-start gap-[30px] overflow-y-auto pr-[30px] max-[600px]:pr-0">
+                    <div className="flex h-[90%] w-full flex-col overflow-y-auto">
                         {rating.map((ratingItem: IRating, index: number) => (
                             <div
-                                className={ratingGridClassName}
+                                className={`${ratingGridClassName} ${rowClassName}`}
                                 key={index}
                             >
                                 <span className={paramClassName}>

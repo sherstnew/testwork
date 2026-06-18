@@ -263,7 +263,7 @@ export default function HomePage() {
               : "text-xl leading-snug max-[600px]:text-lg";
 
     return status === "initial" && currentExam ? (
-        <div className="flex flex-wrap items-start justify-start gap-[30px]">
+        <div className="flex flex-wrap items-start justify-start gap-[25px]">
             <span className="w-full text-2xl max-[600px]:text-lg">
                 {currentExam.name}
             </span>
@@ -278,14 +278,11 @@ export default function HomePage() {
                     placeholder="Введите имя и фамилию"
                     onChange={(event) => setName(event.target.value)}
                 />
-            </section>
-            <section className={sectionClassName}>
-                <button
-                    className={buttonClassName}
-                    onClick={runTest}
-                >
-                    Начать
-                </button>
+                <section className={sectionClassName}>
+                    <button className={buttonClassName} onClick={runTest}>
+                        Начать
+                    </button>
+                </section>
             </section>
         </div>
     ) : status === "progress" && questions[0] ? (
@@ -372,41 +369,53 @@ export default function HomePage() {
             <div className="text-[32px]">
                 {moment(date).format("DD.MM.YYYY")}
             </div>
-            <div className="mt-[18px] w-full text-left">
-                <div className="mb-2 font-bold">Неправильные ответы:</div>
+            <div className="mt-6 w-full max-w-[760px] text-left">
+                <div className="mb-3 text-xl font-semibold">
+                    Неправильные ответы
+                </div>
                 {incorrects.length === 0 ? (
-                    <div className="text-[#2e7d32]">Все ответы верны</div>
+                    <div className="rounded-lg border border-[#b9dfbf] bg-[#f3fbf4] px-4 py-3 text-[#2e7d32]">
+                        Все ответы верны
+                    </div>
                 ) : (
-                    <ul className="m-0 list-none p-0">
+                    <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
                         {incorrects.map((it, idx) => (
                             <li
                                 key={idx}
-                                className="mb-2 rounded-lg border border-[#eee] bg-[#fafafa] p-3"
+                                className="rounded-lg border border-[#dddddd] bg-white px-3.5 py-3"
                             >
-                                <div className="mb-1.5 font-bold">
-                                    {it.text}
-                                </div>
-                                <div className="mb-1 text-[#b00020]">
-                                    Ваш ответ:{" "}
-                                    <span className="font-semibold">
-                                        {it.given || "—"}
+                                <div className="mb-2.5 grid grid-cols-[24px_minmax(0,1fr)] gap-2.5">
+                                    <span className="pt-0.5 text-center text-sm text-[#777777]">
+                                        {idx + 1}
                                     </span>
+                                    <div className="min-w-0 break-words font-semibold leading-snug [overflow-wrap:anywhere]">
+                                        {it.text}
+                                    </div>
                                 </div>
-                                <div className="text-[#2e7d32]">
-                                    Правильный ответ:{" "}
-                                    <span className="font-semibold">
-                                        {it.correct}
-                                    </span>
+                                <div className="grid gap-1.5 pl-[34px] text-base max-[600px]:pl-0">
+                                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                        <span className="text-sm text-[#777777]">
+                                            Ваш ответ:
+                                        </span>
+                                        <span className="min-w-0 break-words text-[#b00020] [overflow-wrap:anywhere]">
+                                            {it.given || "—"}
+                                        </span>
+                                    </div>
+                                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                        <span className="text-sm text-[#777777]">
+                                            Правильно:
+                                        </span>
+                                        <span className="min-w-0 break-words text-[#2e7d32] [overflow-wrap:anywhere]">
+                                            {it.correct}
+                                        </span>
+                                    </div>
                                 </div>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
-            <button
-                className={buttonClassName}
-                onClick={restartTest}
-            >
+            <button className={buttonClassName} onClick={restartTest}>
                 Выйти
             </button>
         </div>
