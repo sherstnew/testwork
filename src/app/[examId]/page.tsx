@@ -1,270 +1,416 @@
 "use client";
 
-import styles from "./page.module.scss";
-import { Roboto_Slab } from "next/font/google";
-import { startTest } from "@/lib/utils/startTest";
-import { useState, useEffect } from "react";
+import { getExam } from "@/lib/utils/exams";
+import { finishTest, loadTest, startTest, updateTest } from "@/lib/utils/tests";
+import { useCallback, useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
-import { loadTest } from "@/lib/utils/loadTest";
-import { finishTest } from "@/lib/utils/finishTest";
 import { IQuestion } from "@/types/IQuestion";
-import { getExam } from "@/lib/utils/getExam";
 import { useParams } from "next/navigation";
 import { IExam } from "@/types/IExam";
+import { IResult } from "@/types/IResult";
 import NotFoundPage from "../not-found";
 import moment from "moment";
 
-const font = Roboto_Slab({ subsets: ["cyrillic"] });
 moment.locale("ru");
+const buttonClassName =
+    "mt-[30px] h-10 w-[200px] cursor-pointer rounded-[10px] border-0 bg-[#43be54] text-lg text-white outline-none disabled:cursor-default";
+const sectionClassName = "w-full";
+const optionClassName =
+    "flex min-h-[58px] w-full cursor-pointer items-center gap-4 rounded-lg border border-[#d8d8d8] bg-white px-4 py-3 text-xl transition-colors hover:border-[#43be54] max-[600px]:min-h-[52px] max-[600px]:gap-3 max-[600px]:px-3 max-[600px]:py-2.5 max-[600px]:text-base";
+const selectedOptionClassName = "border-[#43be54] bg-[#eef9f0]";
 
 export default function HomePage() {
-  const [cookies, setCookies] = useCookies();
-  const [questions, setQuestions] = useState<IQuestion[]>([]);
-  const [result, setResult] = useState<number>(0);
-  const [time, setTime] = useState<number>(-1);
+    const [cookies, setCookies] = useCookies();
+    const [questions, setQuestions] = useState<IQuestion[]>([]);
+    const [result, setResult] = useState<number>(0);
+    const [time, setTime] = useState<number>(-1);
 
-  const [currentExam, setCurrentExam] = useState<IExam>();
+    const [currentExam, setCurrentExam] = useState<IExam>();
 
-  const [initialLength, setInitialLength] = useState(0);
+    const [initialLength, setInitialLength] = useState(0);
 
-  const [name, setName] = useState("");
+    const [name, setName] = useState("");
 
-  const [answer, setAnswer] = useState<string>("");
-  type Incorrect = { text: string; given: string; correct: string };
-  const [incorrects, setIncorrects] = useState<Incorrect[]>([]);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+    const [answer, setAnswer] = useState<string>("");
+    type Incorrect = { text: string; given: string; correct: string };
+    const [incorrects, setIncorrects] = useState<Incorrect[]>([]);
+    const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const [status, setStatus] = useState<
-    "initial" | "progress" | "finished" | "loading"
-  >("initial");
+    const [status, setStatus] = useState<
+        "initial" | "progress" | "finished" | "loading"
+    >("initial");
 
-  const { examId } = useParams();
+    const { examId } = useParams();
 
-  useEffect(() => {
-    if (time !== -1) {
-      setTimeout(() => {
-        if (time === 0) {
-          finishTest(cookies["TESTWORK_SESSION_ID"], result, name, time, examId ?? "")
-            .then((result: any) => {
-              setName(result.name);
-              setStatus("finished");
+    const restartTest = useCallback(() => {
+        setQuestions([]);
+        setResult(0);
+        setInitialLength(0);
+        setStatus("initial");
+        setCookies("TESTWORK_SESSION_ID", "");
+        setName("");
+        setTime(-1);
+        setIncorrects([]);
+        setAnswer("");
+    }, [setCookies]);
+
+    useEffect(() => {
+        if (time !== -1) {
+            const timeoutId = setTimeout(() => {
+                if (time === 0) {
+                    setSubmitting(true);
+                    finishTest(
+                        cookies["TESTWORK_SESSION_ID"],
+                        result,
+                        name,
+                        time,
+                        examId ?? "",
+                    )
+                        .then((result: IResult) => {
+                            setName(result.name);
+                            setStatus("finished");
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            restartTest();
+                        })
+                        .finally(() => setSubmitting(false));
+                } else {
+                    setTime((time) => time - 1);
+                }
+            }, 1000);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [cookies, examId, name, restartTest, result, time]);
+
+    useEffect(() => {
+        if (cookies["TESTWORK_SESSION_ID"]) {
+            loadTest(cookies["TESTWORK_SESSION_ID"])
+                .then((session) => {
+                    if (
+                        session.examId &&
+                        String(session.examId) !== String(examId ?? "")
+                    ) {
+                        restartTest();
+                        return;
+                    }
+
+                    setQuestions(session.questions);
+                    setName(session.name);
+                    setStatus("progress");
+                    setInitialLength(
+                        session.initialLength ?? session.questions.length,
+                    );
+                    setTime(session.time ?? 600);
+                    setResult(session.result ?? 0);
+                    setIncorrects(session.incorrects ?? []);
+                    setAnswer(session.selectedAnswer ?? "");
+                })
+                .catch((error) => {
+                    console.log(error);
+                    restartTest();
+                });
+        }
+    }, [cookies, examId, restartTest]);
+
+    useEffect(() => {
+        getExam(examId ?? "")
+            .then((exam: IExam) => {
+                if (exam) {
+                    setCurrentExam(exam);
+                    setStatus((status) =>
+                        status === "progress" ? "progress" : "initial",
+                    );
+                } else {
+                    console.log("Cannot get Exam by id");
+                }
             })
             .catch((error) => {
-              console.log(error);
-              restartTest();
+                console.log(error);
             });
-        } else {
-          setTime((time) => time - 1);
+    }, [examId]);
+
+    const runTest = async () => {
+        startTest(name, examId ?? "")
+            .then((session) => {
+                setCookies("TESTWORK_SESSION_ID", session._id);
+                setQuestions(session.questions);
+                setResult(session.result ?? 0);
+                setName(session.name);
+                setInitialLength(
+                    session.initialLength ?? session.questions.length,
+                );
+                setStatus("progress");
+                setTime(session.time ?? 600);
+                setIncorrects(session.incorrects ?? []);
+                setAnswer(session.selectedAnswer ?? "");
+            })
+            .catch((error) => {
+                console.log(error);
+                restartTest();
+            });
+    };
+
+    const selectAnswer = (option: string) => {
+        setAnswer(option);
+
+        if (cookies["TESTWORK_SESSION_ID"]) {
+            updateTest(cookies["TESTWORK_SESSION_ID"], {
+                selectedAnswer: option,
+            }).catch((error) => {
+                console.log(error);
+            });
         }
-      }, 1000);
-    }
-  }, [time]);
+    };
 
-  useEffect(() => {
-    if (cookies["TESTWORK_SESSION_ID"]) {
-      loadTest(cookies["TESTWORK_SESSION_ID"])
-        .then((session) => {
-          setQuestions(session.questions);
-          setName(session.name);
-          setStatus("progress");
-          setInitialLength(session.questions.length);
-          setTime(600);
-          setResult(0);
-          setIncorrects([]);
-        })
-        .catch((error) => {
-          console.log(error);
-          restartTest();
-        });
-    }
-  }, []);
+    const answerQuestion = useCallback(() => {
+        if (submitting || !answer || !questions[0]) return;
+        setSubmitting(true);
 
-  useEffect(() => {
-    getExam(examId ?? "")
-      .then((exam: IExam) => {
-        if (exam) {
-          setCurrentExam(exam);
-          setStatus((status) =>
-            status === "progress" ? "progress" : "initial"
-          );
+        let res = result;
+        let nextIncorrects = incorrects;
+        if (questions[0].answer === answer) {
+            res += 1;
+            setResult(res);
         } else {
-          console.log("Cannot get Exam by id");
+            nextIncorrects = [
+                ...incorrects,
+                {
+                    text: questions[0].text,
+                    given: answer ?? "",
+                    correct: questions[0].answer,
+                },
+            ];
+            setIncorrects(nextIncorrects);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
 
-  const runTest = async () => {
-    startTest(name, examId ?? "")
-      .then((session) => {
-        setCookies("TESTWORK_SESSION_ID", session._id);
-        setQuestions(session.questions);
-        setResult(0);
-        setName(session.name);
-        setInitialLength(session.questions.length);
-        setStatus("progress");
-        setTime(600);
-        setIncorrects([]);
-      })
-      .catch((error) => {
-        console.log(error);
-        restartTest();
-      });
-  };
+        if (questions.length === 1) {
+            // finish test
+            finishTest(
+                cookies["TESTWORK_SESSION_ID"],
+                res,
+                name,
+                time,
+                examId ?? "",
+            )
+                .then((result: IResult) => {
+                    setName(result.name);
+                    setStatus("finished");
+                })
+                .catch((error) => {
+                    console.log(error);
+                    restartTest();
+                })
+                .finally(() => setSubmitting(false));
+        } else {
+            const quests = [...questions];
+            quests.shift();
+            updateTest(cookies["TESTWORK_SESSION_ID"], {
+                questions: quests,
+                result: res,
+                incorrects: nextIncorrects,
+                selectedAnswer: "",
+            })
+                .then(() => {
+                    setQuestions(quests);
+                    setResult(res);
+                    setIncorrects(nextIncorrects);
+                    setAnswer("");
+                })
+                .catch((error) => {
+                    console.log(error);
+                    restartTest();
+                })
+                .finally(() => setSubmitting(false));
+        }
+    }, [
+        answer,
+        cookies,
+        examId,
+        incorrects,
+        name,
+        questions,
+        restartTest,
+        result,
+        submitting,
+        time,
+    ]);
 
-  const answerQuestion = () => {
-    if (submitting) return;
-    setSubmitting(true);
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Enter" && status === "progress" && answer) {
+                event.preventDefault();
+                answerQuestion();
+            }
+        };
 
-    let res = result;
-    if (questions[0].answer === answer) {
-      res += 1;
-      setResult((result: number) => result + 1);
-    } else {
-      setIncorrects((prev) => [
-        ...prev,
-        { text: questions[0].text, given: answer ?? "", correct: questions[0].answer },
-      ]);
-    }
+        window.addEventListener("keydown", handleKeyDown);
 
-    if (questions.length === 1) {
-      // finish test
-      finishTest(cookies["TESTWORK_SESSION_ID"], res, name, time, examId ?? "")
-        .then((result: any) => {
-          setName(result.name);
-          setStatus("finished");
-        })
-        .catch((error) => {
-          console.log(error);
-          restartTest();
-        })
-        .finally(() => setSubmitting(false));
-    } else {
-      const quests = [...questions];
-      quests.shift();
-      setQuestions(quests);
-      setAnswer("");
-      setSubmitting(false);
-    }
-  };
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [answer, answerQuestion, status]);
 
-  const restartTest = () => {
-    setQuestions([]);
-    setResult(0);
-    setInitialLength(0);
-    setStatus("initial");
-    setCookies("TESTWORK_SESSION_ID", "");
-    setName("");
-    setTime(-1);
-    setIncorrects([]);
-  };
+    const date = new Date();
+    const currentQuestionNumber = initialLength - questions.length + 1;
+    const progressPercent =
+        initialLength > 0 ? (currentQuestionNumber / initialLength) * 100 : 0;
+    const questionText = questions[0]?.text ?? "";
+    const questionTextClassName =
+        questionText.length > 220
+            ? "text-xl leading-snug max-[600px]:text-sm"
+            : questionText.length > 140
+              ? "text-xl leading-snug max-[600px]:text-base"
+              : "text-xl leading-snug max-[600px]:text-lg";
 
-  const date = new Date();
-
-  return status === "initial" && currentExam ? (
-    <div className={styles.form}>
-      <span className={styles.subheader}>{currentExam.name}</span>
-      <header className={styles.header}>Введите своё имя и фамилию:</header>
-      <section className={styles.section}>
-        <input
-          name="name"
-          type="text"
-          className={styles.input}
-          placeholder="Введите имя и фамилию"
-          style={font.style}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </section>
-      <section className={styles.section}>
-        <button className={styles.button} style={font.style} onClick={runTest}>
-          Начать
-        </button>
-      </section>
-    </div>
-  ) : status === "progress" && questions[0] ? (
-    <div className={styles.question}>
-      <div className={styles.info}>
-        <div className={styles.questions}>
-          {`${initialLength - questions.length + 1}/${initialLength}`}
+    return status === "initial" && currentExam ? (
+        <div className="flex flex-wrap items-start justify-start gap-[30px]">
+            <span className="w-full text-2xl max-[600px]:text-lg">
+                {currentExam.name}
+            </span>
+            <header className="w-full text-4xl max-[600px]:text-2xl">
+                Введите своё имя и фамилию:
+            </header>
+            <section className={sectionClassName}>
+                <input
+                    name="name"
+                    type="text"
+                    className="h-[50px] w-[30%] rounded-[10px] border-0 pl-5 text-lg outline-none placeholder:text-[#5a5a5a] max-[600px]:w-[90%]"
+                    placeholder="Введите имя и фамилию"
+                    onChange={(event) => setName(event.target.value)}
+                />
+            </section>
+            <section className={sectionClassName}>
+                <button
+                    className={buttonClassName}
+                    onClick={runTest}
+                >
+                    Начать
+                </button>
+            </section>
         </div>
-        <div className={styles.time}>
-          {`${String(Math.floor(time / 60)).padStart(2, "0")}:${String(
-            time % 60
-          ).padStart(2, "0")}`}
+    ) : status === "progress" && questions[0] ? (
+        <div className="flex h-full w-full max-w-[820px] flex-col">
+            <div className="mb-5 flex flex-nowrap items-center justify-between gap-4 text-2xl max-[600px]:mb-3 max-[600px]:text-lg">
+                <div>{`${currentQuestionNumber}/${initialLength}`}</div>
+                <div
+                    className={
+                        time <= 30
+                            ? "text-[#b00020]"
+                            : time <= 120
+                              ? "text-[#9a6a00]"
+                              : ""
+                    }
+                >
+                    {`${String(Math.floor(time / 60)).padStart(2, "0")}:${String(
+                        time % 60,
+                    ).padStart(2, "0")}`}
+                </div>
+            </div>
+            <div className="mb-5 h-2 w-full overflow-hidden rounded-full bg-[#dedede] max-[600px]:mb-4">
+                <div
+                    className="h-full rounded-full bg-[#43be54] transition-[width]"
+                    style={{ width: `${progressPercent}%` }}
+                />
+            </div>
+            <div className="mb-5 flex h-[156px] items-center overflow-hidden rounded-lg bg-white px-5 py-2.5 max-[600px]:h-[124px] max-[600px]:px-4 max-[600px]:py-2">
+                <header
+                    className={`${questionTextClassName} max-h-full overflow-hidden`}
+                >
+                    {questionText}
+                </header>
+            </div>
+            <div className="grid w-full grid-cols-1 gap-3">
+                {questions[0].options.map((option: string, index: number) => (
+                    <label
+                        key={index}
+                        className={`${optionClassName} ${
+                            answer === option ? selectedOptionClassName : ""
+                        }`}
+                        htmlFor={`option-${index}`}
+                    >
+                        <input
+                            id={`option-${index}`}
+                            className="sr-only"
+                            type="radio"
+                            name="answer"
+                            checked={answer === option}
+                            onChange={() => selectAnswer(option)}
+                        />
+                        <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors max-[600px]:h-5 max-[600px]:w-5 ${
+                                answer === option
+                                    ? "border-[#43be54]"
+                                    : "border-[#9a9a9a]"
+                            }`}
+                        >
+                            <span
+                                className={`h-3 w-3 rounded-full transition-colors max-[600px]:h-2.5 max-[600px]:w-2.5 ${
+                                    answer === option
+                                        ? "bg-[#43be54]"
+                                        : "bg-[#c7c7c7]"
+                                }`}
+                            />
+                        </span>
+                        <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                            {option}
+                        </span>
+                    </label>
+                ))}
+            </div>
+            <button
+                className={`${buttonClassName} max-[600px]:mt-5 max-[600px]:w-full`}
+                onClick={answerQuestion}
+                disabled={submitting || !answer}
+            >
+                Ответить
+            </button>
         </div>
-      </div>
-      <header
-        className={styles.question__header}
-      >{`${questions[0].text}`}</header>
-      <div className={styles.options}>
-        {questions[0].options.map((option: string, index: number) => (
-          <div
-            key={index}
-            className={styles.options__radio}
-            onClick={() => setAnswer(option)}
-          >
-            <input
-              className={styles.radio}
-              type="radio"
-              name={String(index)}
-              checked={answer === option}
-              onChange={() => {}}
-            />
-            <label className={styles.label} htmlFor={String(index)}>
-              {option}
-            </label>
-          </div>
-        ))}
-      </div>
-      <button
-        className={styles.button}
-        onClick={answerQuestion}
-        style={font.style}
-        disabled={submitting}
-      >
-        Ответить
-      </button>
-    </div>
-  ) : status === "finished" ? (
-    <div className={styles.result}>
-      <div className={styles.result__regular}>Ваш результат:</div>
-      <div
-        className={styles.result__points}
-      >{`${result}/${initialLength}`}</div>
-      <div className={styles.result__regular}>
-        {moment(date).format("DD.MM.YYYY")}
-      </div>
-      <div className={styles.incorrectsWrap}>
-        <div className={styles.incorrectsTitle}>Неправильные ответы:</div>
-        {incorrects.length === 0 ? (
-          <div className={styles.incorrectsEmpty}>Все ответы верны</div>
-        ) : (
-          <ul className={styles.incorrectList}>
-            {incorrects.map((it, idx) => (
-              <li key={idx} className={styles.incorrectItem}>
-                <div className={styles.incorrectQuestion}>{it.text}</div>
-                <div className={styles.incorrectGiven}>
-                  Ваш ответ: <span className={styles.incorrectValue}>{it.given || "—"}</span>
-                </div>
-                <div className={styles.incorrectCorrect}>
-                  Правильный ответ: <span className={styles.incorrectValue}>{it.correct}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <button
-        className={styles.button}
-        onClick={restartTest}
-        style={font.style}
-      >
-        Выйти
-      </button>
-    </div>
-  ) : (
-    <NotFoundPage />
-  );
+    ) : status === "finished" ? (
+        <div>
+            <div className="text-[32px]">Ваш результат:</div>
+            <div className="text-[64px]">{`${result}/${initialLength}`}</div>
+            <div className="text-[32px]">
+                {moment(date).format("DD.MM.YYYY")}
+            </div>
+            <div className="mt-[18px] w-full text-left">
+                <div className="mb-2 font-bold">Неправильные ответы:</div>
+                {incorrects.length === 0 ? (
+                    <div className="text-[#2e7d32]">Все ответы верны</div>
+                ) : (
+                    <ul className="m-0 list-none p-0">
+                        {incorrects.map((it, idx) => (
+                            <li
+                                key={idx}
+                                className="mb-2 rounded-lg border border-[#eee] bg-[#fafafa] p-3"
+                            >
+                                <div className="mb-1.5 font-bold">
+                                    {it.text}
+                                </div>
+                                <div className="mb-1 text-[#b00020]">
+                                    Ваш ответ:{" "}
+                                    <span className="font-semibold">
+                                        {it.given || "—"}
+                                    </span>
+                                </div>
+                                <div className="text-[#2e7d32]">
+                                    Правильный ответ:{" "}
+                                    <span className="font-semibold">
+                                        {it.correct}
+                                    </span>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+            <button
+                className={buttonClassName}
+                onClick={restartTest}
+            >
+                Выйти
+            </button>
+        </div>
+    ) : (
+        <NotFoundPage />
+    );
 }

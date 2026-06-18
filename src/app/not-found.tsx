@@ -1,8 +1,7 @@
 'use client';
 
 import { IExam } from '@/types/IExam';
-import styles from './not-found.module.scss';
-import { getAllExams } from '@/lib/utils/getAllExams';
+import { getAllExams } from '@/lib/utils/exams';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -24,9 +23,9 @@ export default function NotFoundPage() {
   }, []);
 
   return exams ? (
-    <div className={styles.notfound}>
-      {exams.map((exam) => (
-        <Link href={`/${exam._id}`} key={exam._id} className={styles.exam}>
+    <div className="flex h-[90%] w-full flex-wrap content-start items-start justify-start gap-5 overflow-y-auto">
+      {exams.toSorted((a, b) => a.name.localeCompare(b.name)).map((exam) => (
+        <Link href={`/${exam._id}`} key={exam._id} className="w-full text-xl">
           - {exam.name}
         </Link>
       ))}

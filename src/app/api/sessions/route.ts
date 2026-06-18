@@ -33,13 +33,23 @@ export async function POST(req: NextRequest) {
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 3);
     createSessionDto.expiredAt = expiredAt;
+    const startedAt = new Date();
+    const availableTime = exam.availableTime || 600;
+    const endsAt = new Date(startedAt.getTime() + availableTime * 1000);
+    createSessionDto.examId = examId;
+    createSessionDto.startedAt = startedAt;
+    createSessionDto.endsAt = endsAt;
+    createSessionDto.result = 0;
+    createSessionDto.incorrects = [];
+    createSessionDto.selectedAnswer = '';
     // Найти случайные вопросы
     const allQuestions = await QuestionModel.find();
     const shuffled = allQuestions.sort(() => Math.random() - 0.5).slice(0, exam.questionsLimit);
     createSessionDto.questions = shuffled;
+    createSessionDto.initialLength = shuffled.length;
     const createdSession = await new SessionModel(createSessionDto).save();
     end({ status_code: '201' });
-    return NextResponse.json(createdSession, { status: 201 });
+    return NextResponse.json({ ...createdSession.toObject(), time: availableTime }, { status: 201 });
   } else {
     end({ status_code: '400' });
     return NextResponse.json({ error: 'Specify question or examId' }, { status: 400 });

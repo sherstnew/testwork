@@ -1,11 +1,11 @@
-import { getResults } from './getResults';
-import { IResult } from '@/types/IResult';
 import { IRating } from '@/types/IRating';
+import { IResult } from '@/types/IResult';
+import { getResults } from './results';
 
-export const formRating = async (examId: string|string[]) => {
+export const formRating = async (examId: string | string[]) => {
   let results: IResult[] = await getResults(examId);
 
-  let names: string[] = [];
+  const names: string[] = [];
   const resultsByName: IResult[][] = [];
 
   results = results.map((result) => {
@@ -16,15 +16,22 @@ export const formRating = async (examId: string|string[]) => {
   });
 
   results.forEach((result: IResult) => {
-    if (!names.includes(result.name) && !names.includes(result.name.split(' ').reverse().join(' ')) && result.name !== 'Аноним') {
+    if (
+      !names.includes(result.name) &&
+      !names.includes(result.name.split(' ').reverse().join(' ')) &&
+      result.name !== 'Аноним'
+    ) {
       names.push(result.name);
-    };
+    }
   });
-
 
   names.forEach((name: string) => {
     resultsByName.push(
-      results.filter((result: IResult) => result.name === name || result.name.split(' ').reverse().join(' ') === name)
+      results.filter(
+        (result: IResult) =>
+          result.name === name ||
+          result.name.split(' ').reverse().join(' ') === name
+      )
     );
   });
 
@@ -37,13 +44,13 @@ export const formRating = async (examId: string|string[]) => {
       averageTime: '0',
     };
 
-    const rightAnswersPercent =
+    const rightAnswersPercent = (
       (resultsByName[i].reduce(
         (accumulator, object) => accumulator + object.result,
         0
       ) /
-      (resultsByName[i].length * 20)
-      * 100
+        (resultsByName[i].length * 20)) *
+      100
     ).toFixed();
 
     const averageTime = (
