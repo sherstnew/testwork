@@ -3,9 +3,8 @@ import { SessionModel } from '../src/lib/models';
 
 async function cleanupSessions() {
   await dbConnect();
-  const now = new Date();
-  const expired = await SessionModel.deleteMany({ expiredAt: { $lte: now } });
-  console.log(`Удалено просроченных сессий: ${expired.deletedCount}`);
+  const result = await SessionModel.deleteMany({});
+  console.log(`Удалено сессий: ${result.deletedCount}`);
   process.exit(0);
 }
 

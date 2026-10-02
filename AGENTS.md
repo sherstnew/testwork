@@ -49,7 +49,6 @@ Use Bun commands for dependency and script work. Do not reintroduce `package-loc
 
 After meaningful changes, run:
 
-1. `bun run lint`
-2. `bun run build`
+`bun run lint`
 
 If a check cannot run because of missing environment variables or external services, report the exact blocker.

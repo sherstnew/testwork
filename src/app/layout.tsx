@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import localFont from 'next/font/local';
 import './globals.css';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ const font = localFont({
   display: 'swap',
 });
 const linkClassName = 'max-[600px]:w-[40%]';
+const activeLinkClassName = `${linkClassName} text-[#43be54]`;
 
 export default function RootLayout({
   children,
@@ -17,6 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const { examId } = useParams();
+  const pathname = usePathname();
+  const isActiveLink = (href: string) => pathname === href;
 
   return (
     <html lang='en'>
@@ -25,23 +28,41 @@ export default function RootLayout({
       </head>
       <body className={font.className}>
         <header className="flex w-[80%] h-[20%] items-center content-center justify-start gap-[50px] text-4xl font-medium max-[600px]:flex-wrap max-[600px]:justify-between max-[600px]:gap-2.5 max-[600px]:text-xl max-[600px]:font-normal max-[600px]:underline">
-          <Link href={`/`} className={linkClassName}>
+          <Link
+            href={`/`}
+            className={isActiveLink('/') ? activeLinkClassName : linkClassName}
+          >
             Главная
           </Link>
           {examId ? (
             <>
-              <Link href={`/${examId ? examId : ''}`} className={linkClassName}>
+              <Link
+                href={`/${examId ? examId : ''}`}
+                className={
+                  isActiveLink(`/${examId ? examId : ''}`)
+                    ? activeLinkClassName
+                    : linkClassName
+                }
+              >
                 Тест
               </Link>
               <Link
                 href={`/${examId ? examId : 'test'}/results`}
-                className={linkClassName}
+                className={
+                  isActiveLink(`/${examId ? examId : 'test'}/results`)
+                    ? activeLinkClassName
+                    : linkClassName
+                }
               >
                 Результаты
               </Link>
               <Link
                 href={`/${examId ? examId : 'test'}/rating`}
-                className={linkClassName}
+                className={
+                  isActiveLink(`/${examId ? examId : 'test'}/rating`)
+                    ? activeLinkClassName
+                    : linkClassName
+                }
               >
                 Рейтинг
               </Link>

@@ -1,15 +1,19 @@
 export const startTest = async (name: string, examId: string | string[]) => {
-  const session = await (
-    await fetch(`/api/sessions?examId=${examId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: name || 'Аноним',
-      }),
-    })
-  ).json();
+  const normalizedExamId = Array.isArray(examId) ? examId[0] : examId;
+  const response = await fetch(`/api/sessions?examId=${encodeURIComponent(normalizedExamId)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: name || 'Аноним',
+    }),
+  });
+  const session = await response.json();
+
+  if (!response.ok || session.error) {
+    throw new Error(session.error ?? 'Cannot start test');
+  }
 
   return session;
 };

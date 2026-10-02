@@ -8,7 +8,6 @@ import { IQuestion } from "@/types/IQuestion";
 import { useParams } from "next/navigation";
 import { IExam } from "@/types/IExam";
 import { IResult } from "@/types/IResult";
-import NotFoundPage from "../not-found";
 import moment from "moment";
 
 moment.locale("ru");
@@ -26,6 +25,7 @@ export default function HomePage() {
     const [time, setTime] = useState<number>(-1);
 
     const [currentExam, setCurrentExam] = useState<IExam>();
+    const [examLoaded, setExamLoaded] = useState(false);
 
     const [initialLength, setInitialLength] = useState(0);
 
@@ -35,12 +35,14 @@ export default function HomePage() {
     type Incorrect = { text: string; given: string; correct: string };
     const [incorrects, setIncorrects] = useState<Incorrect[]>([]);
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const [startError, setStartError] = useState<string>("");
 
     const [status, setStatus] = useState<
         "initial" | "progress" | "finished" | "loading"
     >("initial");
 
     const { examId } = useParams();
+    const examIdParam = Array.isArray(examId) ? examId[0] : (examId ?? "");
 
     const restartTest = useCallback(() => {
         setQuestions([]);
@@ -52,10 +54,11 @@ export default function HomePage() {
         setTime(-1);
         setIncorrects([]);
         setAnswer("");
+        setStartError("");
     }, [setCookies]);
 
     useEffect(() => {
-        if (time !== -1) {
+        if (status === "progress" && time !== -1) {
             const timeoutId = setTimeout(() => {
                 if (time === 0) {
                     setSubmitting(true);
@@ -64,11 +67,13 @@ export default function HomePage() {
                         result,
                         name,
                         time,
-                        examId ?? "",
+                        examIdParam,
                     )
                         .then((result: IResult) => {
                             setName(result.name);
                             setStatus("finished");
+                            setTime(-1);
+                            setCookies("TESTWORK_SESSION_ID", "");
                         })
                         .catch((error) => {
                             console.log(error);
@@ -82,7 +87,7 @@ export default function HomePage() {
 
             return () => clearTimeout(timeoutId);
         }
-    }, [cookies, examId, name, restartTest, result, time]);
+    }, [cookies, examIdParam, name, restartTest, result, setCookies, status, time]);
 
     useEffect(() => {
         if (cookies["TESTWORK_SESSION_ID"]) {
@@ -90,7 +95,7 @@ export default function HomePage() {
                 .then((session) => {
                     if (
                         session.examId &&
-                        String(session.examId) !== String(examId ?? "")
+                        String(session.examId) !== String(examIdParam)
                     ) {
                         restartTest();
                         return;
@@ -112,10 +117,12 @@ export default function HomePage() {
                     restartTest();
                 });
         }
-    }, [cookies, examId, restartTest]);
+    }, [cookies, examIdParam, restartTest]);
 
     useEffect(() => {
-        getExam(examId ?? "")
+        setExamLoaded(false);
+        setCurrentExam(undefined);
+        getExam(examIdParam)
             .then((exam: IExam) => {
                 if (exam) {
                     setCurrentExam(exam);
@@ -128,11 +135,23 @@ export default function HomePage() {
             })
             .catch((error) => {
                 console.log(error);
+            })
+            .finally(() => {
+                setExamLoaded(true);
             });
-    }, [examId]);
+    }, [examIdParam]);
 
     const runTest = async () => {
-        startTest(name, examId ?? "")
+        const sessionExamId = currentExam?._id ?? examIdParam;
+
+        if (!sessionExamId) {
+            setStartError("Не удалось определить экзамен.");
+            return;
+        }
+
+        setSubmitting(true);
+        setStartError("");
+        startTest(name, sessionExamId)
             .then((session) => {
                 setCookies("TESTWORK_SESSION_ID", session._id);
                 setQuestions(session.questions);
@@ -148,8 +167,11 @@ export default function HomePage() {
             })
             .catch((error) => {
                 console.log(error);
-                restartTest();
-            });
+                setStartError(
+                    "Не удалось начать тест. Попробуйте обновить страницу.",
+                );
+            })
+            .finally(() => setSubmitting(false));
     };
 
     const selectAnswer = (option: string) => {
@@ -192,11 +214,13 @@ export default function HomePage() {
                 res,
                 name,
                 time,
-                examId ?? "",
+                examIdParam,
             )
                 .then((result: IResult) => {
                     setName(result.name);
                     setStatus("finished");
+                    setTime(-1);
+                    setCookies("TESTWORK_SESSION_ID", "");
                 })
                 .catch((error) => {
                     console.log(error);
@@ -227,12 +251,13 @@ export default function HomePage() {
     }, [
         answer,
         cookies,
-        examId,
+        examIdParam,
         incorrects,
         name,
         questions,
         restartTest,
         result,
+        setCookies,
         submitting,
         time,
     ]);
@@ -262,7 +287,24 @@ export default function HomePage() {
               ? "text-xl leading-snug max-[600px]:text-base"
               : "text-xl leading-snug max-[600px]:text-lg";
 
-    return status === "initial" && currentExam ? (
+    if (!examLoaded) {
+        return "Загрузка...";
+    }
+
+    if (!currentExam) {
+        return (
+            <div className="flex w-full flex-col items-start gap-5">
+                <h1 className="text-4xl max-[600px]:text-2xl">
+                    Экзамен не найден
+                </h1>
+                <p className="text-xl max-[600px]:text-base">
+                    Проверьте ссылку или вернитесь к списку экзаменов.
+                </p>
+            </div>
+        );
+    }
+
+    return status === "initial" ? (
         <div className="flex flex-wrap items-start justify-start gap-[25px]">
             <span className="w-full text-2xl max-[600px]:text-lg">
                 {currentExam.name}
@@ -278,8 +320,17 @@ export default function HomePage() {
                     placeholder="Введите имя и фамилию"
                     onChange={(event) => setName(event.target.value)}
                 />
+                {startError && (
+                    <div className="mt-3 text-lg text-[#b00020] max-[600px]:text-base">
+                        {startError}
+                    </div>
+                )}
                 <section className={sectionClassName}>
-                    <button className={buttonClassName} onClick={runTest}>
+                    <button
+                        className={buttonClassName}
+                        onClick={runTest}
+                        disabled={submitting}
+                    >
                         Начать
                     </button>
                 </section>
@@ -292,10 +343,10 @@ export default function HomePage() {
                 <div
                     className={
                         time <= 30
-                            ? "text-[#b00020]"
+                            ? "w-[5ch] text-right tabular-nums text-[#b00020]"
                             : time <= 120
-                              ? "text-[#9a6a00]"
-                              : ""
+                              ? "w-[5ch] text-right tabular-nums text-[#9a6a00]"
+                              : "w-[5ch] text-right tabular-nums"
                     }
                 >
                     {`${String(Math.floor(time / 60)).padStart(2, "0")}:${String(
@@ -309,7 +360,7 @@ export default function HomePage() {
                     style={{ width: `${progressPercent}%` }}
                 />
             </div>
-            <div className="mb-5 flex h-[156px] items-center overflow-hidden rounded-lg bg-white px-5 py-2.5 max-[600px]:h-[124px] max-[600px]:px-4 max-[600px]:py-2">
+            <div className="mb-5 flex items-center overflow-hidden rounded-lg bg-white px-5 py-2.5 max-[600px]:h-[124px] max-[600px]:px-4 max-[600px]:py-2">
                 <header
                     className={`${questionTextClassName} max-h-full overflow-hidden`}
                 >
@@ -420,6 +471,6 @@ export default function HomePage() {
             </button>
         </div>
     ) : (
-        <NotFoundPage />
+        "Загрузка..."
     );
 }
