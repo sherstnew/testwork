@@ -1,14 +1,17 @@
-import { dbConnect } from '../src/lib/mongoose';
-import { SessionModel } from '../src/lib/models';
+import mongoose from 'mongoose';
 
 async function cleanupSessions() {
-  await dbConnect();
-  const result = await SessionModel.deleteMany({});
-  console.log(`Удалено сессий: ${result.deletedCount}`);
-  process.exit(0);
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/testwork';
+  await mongoose.connect(uri, { bufferCommands: false });
+  try {
+    const result = await mongoose.connection.collection('sessions').deleteMany({});
+    console.log(`Удалено сессий: ${result.deletedCount}`);
+  } finally {
+    await mongoose.disconnect();
+  }
 }
 
 cleanupSessions().catch((e) => {
   console.error('Ошибка очистки сессий', e);
-  process.exit(1);
+  process.exitCode = 1;
 });

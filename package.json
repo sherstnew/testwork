@@ -2,12 +2,13 @@
   "name": "testwork",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "sessions:clear": "bun scripts/cleanupSessions.js"
+    "sessions:clear": "node scripts/cleanupSessions.js"
   },
   "dependencies": {
     "moment": "^2.30.1",

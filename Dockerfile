@@ -1,39 +1,40 @@
-FROM oven/bun:1.3.14-alpine AS deps
+FROM node:24-alpine AS deps
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY package.json package-lock.json ./
 
-RUN bun install --frozen-lockfile
+RUN npm ci
 
-FROM oven/bun:1.3.14-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN bun run build
+RUN npm run build
 
-FROM oven/bun:1.3.14-alpine AS production-deps
+FROM node:24-alpine AS production-deps
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY package.json package-lock.json ./
 
-RUN bun install --frozen-lockfile --production
+RUN npm ci --omit=dev
 
-FROM oven/bun:1.3.14-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package.json bun.lock ./
+COPY package.json package-lock.json ./
 COPY --from=production-deps /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
+COPY --from=builder /app/scripts ./scripts
 
 EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+CMD ["npm", "run", "start"]

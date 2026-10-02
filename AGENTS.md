@@ -2,7 +2,7 @@
 
 ## Project Stack
 
-- Runtime/package manager: Bun.
+- Runtime/package manager: Node.js and npm.
 - Framework: Next.js 15 with App Router.
 - Language: TypeScript with `strict` enabled.
 - UI styling: Tailwind CSS utilities in TSX. Do not add SCSS/CSS modules for new UI.
@@ -11,12 +11,12 @@
 
 ## Commands
 
-- Install dependencies: `bun install`
-- Development server: `bun run dev`
-- Production build: `bun run build`
-- Lint: `bun run lint`
+- Install dependencies: `npm ci`
+- Development server: `npm run dev`
+- Production build: `npm run build`
+- Lint: `npm run lint`
 
-Use Bun commands for dependency and script work. Do not reintroduce `package-lock.json`.
+Use npm commands for dependency and script work. Keep `package-lock.json` in sync with `package.json`.
 
 ## Structure
 
@@ -49,6 +49,6 @@ Use Bun commands for dependency and script work. Do not reintroduce `package-loc
 
 After meaningful changes, run:
 
-`bun run lint`
+`npm run lint`
 
 If a check cannot run because of missing environment variables or external services, report the exact blocker.
