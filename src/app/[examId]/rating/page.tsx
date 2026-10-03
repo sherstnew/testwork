@@ -26,13 +26,17 @@ export default function RatingPage() {
             .then((ratingData) => {
                 setRating(
                     ratingData.sort((a, b) => {
-                        if (a.rightAnswersPercent > b.rightAnswersPercent) {
-                            return -1;
+                        const percentA = Number(a.rightAnswersPercent);
+                        const percentB = Number(b.rightAnswersPercent);
+
+                        if (percentA !== percentB) {
+                            return percentB - percentA;
                         }
-                        if (a.rightAnswersPercent < b.rightAnswersPercent) {
-                            return 1;
-                        }
-                        return 0;
+
+                        const timeA = Number(a.averageTime);
+                        const timeB = Number(b.averageTime);
+
+                        return timeA - timeB;
                     }),
                 );
             })
